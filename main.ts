@@ -316,6 +316,7 @@ namespace oledStamp {
             if (image.width() == 16) {
                 scale = 8
             }
+            clear()
             for (let img_y = 0; img_y < image.width() * scale; img_y++) {
                 for (let img_x = 0; img_x < image.height() * scale; img_x++) {
                     let c = image.pixel(img_x, img_y)
