@@ -3,6 +3,7 @@
  * License: MIT
  * Original By: Pythom1234
  * Fork By: sassafrastree
+ * https://github.com/Pythom1234/pxt-oled
  */
 
 //% color=#3D66B3 icon="\uf108" block="OLED Stamps"
@@ -21,20 +22,20 @@ namespace oledStamp {
     }
     // From microbit/micropython Chinese community
     function cmd2(cmd1: number, cmd2: number): void {
-        let buffer = pins.createBuffer(3)
-        buffer[0] = 0x00
-        buffer[1] = cmd1
-        buffer[2] = cmd2
-        pins.i2cWriteBuffer(ADDR, buffer)
+        let buffer2 = pins.createBuffer(3)
+        buffer2[0] = 0x00
+        buffer2[1] = cmd1
+        buffer2[2] = cmd2
+        pins.i2cWriteBuffer(ADDR, buffer2)
     }
     // From microbit/micropython Chinese community
     function cmd3(cmd1: number, cmd2: number, cmd3: number): void {
-        let buffer = pins.createBuffer(4)
-        buffer[0] = 0x00
-        buffer[1] = cmd1
-        buffer[2] = cmd2
-        buffer[3] = cmd3
-        pins.i2cWriteBuffer(ADDR, buffer)
+        let buffer3 = pins.createBuffer(4)
+        buffer3[0] = 0x00
+        buffer3[1] = cmd1
+        buffer3[2] = cmd2
+        buffer3[3] = cmd3
+        pins.i2cWriteBuffer(ADDR, buffer3)
     }
     function showbit(bit: number, shift: number): number {
         if (bit & (1 << shift)) { }
@@ -87,6 +88,7 @@ namespace oledStamp {
      * @param color filling color (usually `false`)
      */
     //% block="clear"
+    //% weight=99
     export function clear(): void {
         screen.fill(0)
     }
@@ -95,7 +97,8 @@ namespace oledStamp {
      * This command must be called whenever you want to show something on the OLED display.
      */
     //% block="draw"
-    export function draw(): void {
+    //% weight=98
+    function draw(): void {
         pins.i2cWriteNumber(ADDR, 0xB0, NumberFormat.UInt16BE)
         pins.i2cWriteNumber(ADDR, 0x00, NumberFormat.UInt16BE)
         pins.i2cWriteNumber(ADDR, 0x10, NumberFormat.UInt16BE)
@@ -111,10 +114,43 @@ namespace oledStamp {
      */
     //% block="set pixel at x $x y $y to $color"
     //% color.defl=true
+    //% weight=97
+    //% advanced=true
     export function setPx(x: number, y: number, color: boolean): void {
         const index = Math.round(Math.floor(y / 8) * 128 + x + 1)
         if ((index < 1025) && (index > -1) && (x < 128) && (x > -1) && (y > -1) && (y < 128)) {
             screen[index] = (color) ? showbit(screen[index], (y % 8)) : hidebit(screen[index], (y % 8))
+        }
+    }
+    /**
+     * Toggles pixel at x y, it means that `true` will be `false` and vice versa.
+     * You need to call `draw` to see the changes.
+     * @param x coordinate x (increases towards the right)
+     * @param y coordinate y (increases downwards)
+     */
+    //% block="toggle pixel at x $x y $y"
+    //% weight=96
+    //% advanced=true
+    export function togglePx(x: number, y: number): void {
+        const index2 = Math.round(Math.floor(y / 8) * 128 + x + 1)
+        if ((index2 < 1025) && (index2 > -1) && (x < 128) && (x > -1) && (y > -1) && (y < 128)) {
+            screen[index2] = (!px(x, y)) ? showbit(screen[index2], (y % 8)) : hidebit(screen[index2], (y % 8))
+        }
+    }
+    /**
+     * Returns color of pixel at x y in buffer.
+     * @param x coordinate x (increases towards the right)
+     * @param y coordinate y (increases downwards)
+     */
+    //% block="pixel at x $x y $y"
+    //% weight=95
+    //% advanced=true
+    export function px(x: number, y: number): boolean {
+        const index3 = Math.round(Math.floor(y / 8) * 128 + x + 1)
+        if ((index3 < 1025) && (index3 > -1) && (x < 128) && (x > -1) && (y > -1) && (y < 128)) {
+            return getbit(screen[index3], (y % 8)) == 1
+        } else {
+            return false
         }
     }
     /**
@@ -125,12 +161,13 @@ namespace oledStamp {
      * @param x coordinate x of upper left corner of text (increases towards the right)
      * @param y coordinate y of upper left corner of text (increases downwards)
      * @param color color of text
+     * @param toggle sets whether to use pixel switching instead of setting the pixel to a specific color (if `true`, `color` means nothing)
      */
-    //% block="draw text $text at|x $x|y $y"
+    //% block="draw text $text at|x $x|y $y|color $color|toggle $toggle"
     //% color.defl=true
     //% toggle.defl=false
     //% weight=94
-    export function drawText(text: string, x: number, y: number): void {
+    export function drawText(text: string, x: number, y: number, color: boolean, toggle: boolean): void {
         const font = [
             [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
             [0x00, 0x10, 0x10, 0x10, 0x10, 0x10, 0x00, 0x10, 0x10, 0x00, 0x00],
@@ -238,16 +275,23 @@ namespace oledStamp {
                 for (let j = 0; j < 11; j++) {
                     for (let k = 0; k < 8; k++) {
                         if (charset[charsetIndex.indexOf(text[i])][j] & (0x01 << k)) {
-                            setPx(x + ((i - lineStart) * 8) + (8 - k), y + (line * 10) + j, false)
-                            
+                            if (toggle) {
+                                togglePx(x + ((i - lineStart) * 8) + (8 - k), y + (line * 10) + j)
+                            } else {
+                                setPx(x + ((i - lineStart) * 8) + (8 - k), y + (line * 10) + j, color)
+                            }
                         }
                     }
                 }
             } else if (text[i].charCodeAt(0) < 128 && text[i].charCodeAt(0) >= 32) {
-                for (let j = 0; j < 11; j++) {
-                    for (let k = 0; k < 8; k++) {
-                        if (font[text[i].charCodeAt(0) - 32][j] & (0x01 << k)) {
-                            setPx(x + ((i - lineStart) * 8) + (8 - k), y + (line * 10) + j, false)
+                for (let l = 0; l < 11; l++) {
+                    for (let m = 0; m < 8; m++) {
+                        if (font[text[i].charCodeAt(0) - 32][l] & (0x01 << m)) {
+                            if (toggle) {
+                                togglePx(x + ((i - lineStart) * 8) + (8 - m), y + (line * 10) + l)
+                            } else {
+                                setPx(x + ((i - lineStart) * 8) + (8 - m), y + (line * 10) + l, color)
+                            }
                         }
                     }
                 }
@@ -255,6 +299,7 @@ namespace oledStamp {
             }
             basic.pause(1)
         }
+        draw()
     }
     /**
      * Draws image.
@@ -262,30 +307,30 @@ namespace oledStamp {
      * @param image image to draw (can be `images.createImage()` or image from extension `imageio`)
      * @param x coordinate x of upper left corner of image (increases towards the right)
      * @param y coordinate y of upper left corner of image (increases downwards)
-     * @param color color of image (if `true`, pixel `true` in image will be drawn as `true`)
-     * @param bg sets whether empty pixels of the image are drawn (drawn with `not color`)
-     * @param toggle sets whether to use pixel switching instead of setting the pixel to a specific color (if `true`, `color` means nothing)
      */
-    //% block="draw image|$image|x $x|y $y"
-    //% color.defl=true
-    //% bg.defl=false
-    //% toggle.defl=false
+    //% block="draw image |$image|x $x|y $y"
     //% weight=100
-    //% advanced=true
     export function drawImage(image: Image, x: number, y: number): void {
         if ((image != null) && (image != undefined)) {
-            for (let img_y = 0; img_y < image.width() * 4; img_y++) {
-                for (let img_x = 0; img_x < image.height() * 4; img_x++) {
+            let scale = 4
+            if (image.width() == 16) {
+                scale = 8
+            }
+            for (let img_y = 0; img_y < image.width() * scale; img_y++) {
+                for (let img_x = 0; img_x < image.height() * scale; img_x++) {
                     let c = image.pixel(img_x, img_y)
-                        for (let y_scale = 0; y_scale < 4; y_scale++) {
-                            for (let x_scale = 0; x_scale < 4; x_scale++) {
-                                setPx(x + img_x * 4 - x_scale + 4, y + img_y * 4 - y_scale + 4, c)
+                    for (let y_scale = 0; y_scale < scale; y_scale++) {
+                        for (let x_scale = 0; x_scale < scale; x_scale++) {
+                            if (c) {
+                                setPx(x + img_x * scale - x_scale + scale, y + img_y * scale - y_scale + scale, c)
                             }
                         }
+                    }
                 }
-                basic.pause(1)
             }
+            basic.pause(1)
         }
+        draw()
     }
     /**
      */
@@ -293,7 +338,15 @@ namespace oledStamp {
     //% advanced=true
     //% shim=images::createImage
     //% imageLiteral=1 imageLiteralRows=16 imageLiteralColumns=32
-    export function stampImage(leds: string): Image {
+    export function imageMap32(leds: string): Image {
+        return <Image><any>leds
+    }
+    /**
+     */
+    //% block="image: 16x8"
+    //% shim=images::createImage
+    //% imageLiteral=1 imageLiteralRows=8 imageLiteralColumns=16
+    export function imageMap16(leds: string): Image {
         return <Image><any>leds
     }
 }

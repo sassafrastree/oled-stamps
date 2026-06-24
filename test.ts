@@ -1,5 +1,5 @@
 oledStamp.init()
-oledStamp.drawImage(oledStamp.stampImage(`
+oledStamp.drawImage(oledStamp.imageMap32(`
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . . . # . . . # . . # . . . . . . . . . . . . . . . . . . . . .
@@ -17,7 +17,6 @@ oledStamp.drawImage(oledStamp.stampImage(`
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     `), 0, 0)
-oledStamp.draw()
 basic.forever(function () {
 
 })
