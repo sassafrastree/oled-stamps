@@ -1,11 +1,9 @@
 {
-    "name": "OLED Stamps - Copy",
+    "name": "OLED (Image Map)",
     "version": "0.1.2",
     "description": "",
     "dependencies": {
         "core": "*",
-        "radio": "*",
-        "microphone": "*"
     },
     "files": [
         "main.blocks",
