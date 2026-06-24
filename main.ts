@@ -6,8 +6,8 @@
  * https://github.com/Pythom1234/pxt-oled
  */
 
-//% color=#3D66B3 icon="\uf108" block="OLED Stamps"
-namespace oledStamp {
+//% color=#3D66B3 icon="\uf108" block="OLED"
+namespace oledMap {
     const ADDR = 0x3C
     let screen = pins.createBuffer(1025)
     let charset: number[][] = []

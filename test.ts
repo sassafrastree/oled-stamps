@@ -1,5 +1,5 @@
-oledStamp.init()
-oledStamp.drawImage(oledStamp.imageMap32(`
+oledMap.init()
+oledMap.drawImage(oledMap.imageMap32(`
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . . . # . . . # . . # . . . . . . . . . . . . . . . . . . . . .
