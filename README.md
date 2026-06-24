@@ -1,3 +1,3 @@
-# oled-image-map
+# oled-images
 
 OLED Extension to map images.
